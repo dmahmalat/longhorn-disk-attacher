@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	longhornV1Beta1 "github.com/longhorn/longhorn-manager/k8s/pkg/apis/longhorn/v1beta1"
@@ -44,7 +45,20 @@ func (l Logger) WithKV(kv kooperLogger.KV) kooperLogger.Logger {
 	return l
 }
 
+func readFile(path string) string {
+	fileBytes, err := os.ReadFile(path)
+	if err != nil {
+		log.Fatalf("Error reading file: %s", err)
+		return ""
+	}
+
+	return strings.TrimSuffix(string(fileBytes), "\n")
+}
+
 func run() error {
+	// Variables
+	namespace := readFile("/var/run/secrets/kubernetes.io/serviceaccount/namespace")
+
 	// Get Kubernetes/Longhorn config and client
 	k8scfg, err := rest.InClusterConfig()
 	if err != nil {
@@ -89,10 +103,10 @@ func run() error {
 		Handler: hand,
 		Retriever: controller.MustRetrieverFromListerWatcher(&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
-				return longhorncli.LonghornV1beta1().Volumes("").List(context.Background(), options)
+				return longhorncli.LonghornV1beta1().Volumes(namespace).List(context.Background(), options)
 			},
 			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
-				return longhorncli.LonghornV1beta1().Volumes("").Watch(context.Background(), options)
+				return longhorncli.LonghornV1beta1().Volumes(namespace).Watch(context.Background(), options)
 			},
 		}),
 	})
@@ -111,10 +125,10 @@ func run() error {
 		Handler: hand,
 		Retriever: controller.MustRetrieverFromListerWatcher(&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
-				return k8scli.AppsV1().Deployments("").List(context.Background(), options)
+				return k8scli.AppsV1().Deployments(namespace).List(context.Background(), options)
 			},
 			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
-				return k8scli.AppsV1().Deployments("").Watch(context.Background(), options)
+				return k8scli.AppsV1().Deployments(namespace).Watch(context.Background(), options)
 			},
 		}),
 	})
@@ -145,7 +159,7 @@ func run() error {
 }
 
 func main() {
-	log.Info("Starting controller.")
+	log.Info("Starting...")
 
 	err := run()
 	if err != nil {

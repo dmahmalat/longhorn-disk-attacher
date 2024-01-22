@@ -24,6 +24,7 @@ rules:
   - "nodes.longhorn.io"
   verbs:
   - "get"
+  - "list"
   - "watch"
   - "create"
   - "update"
