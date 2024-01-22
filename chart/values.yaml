@@ -1,0 +1,9 @@
+image:
+  repository: ghcr.io/dmahmalat/longhorn-disk-attacher
+  tag: latest
+  pullPolicy: IfNotPresent
+
+nodeNamePattern: "storage"
+diskPaths: ""
+
+tolerations: []
