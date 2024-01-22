@@ -31,5 +31,5 @@ spec:
         env:
         - name: NODE_NAME_PATTERN
           value: {{ .Values.nodeNamePattern | quote }}
-        - name: DISK_PATHS
-          value: {{ .Values.diskPaths | quote }}
+        - name: DISK_CONFIG
+          value: {{ .Values.diskConfig | quote }}

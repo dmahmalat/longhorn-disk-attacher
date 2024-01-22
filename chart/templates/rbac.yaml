@@ -17,16 +17,13 @@ metadata:
   namespace: {{ .Release.Namespace }}
 rules:
 - apiGroups:
-  - "apps"
   - "longhorn.io"
   resources:
-  - "deployments"
   - "nodes"
   verbs:
   - "get"
   - "list"
   - "watch"
-  - "create"
   - "update"
 
 ---

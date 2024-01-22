@@ -4,6 +4,6 @@ image:
   pullPolicy: IfNotPresent
 
 nodeNamePattern: "storage"
-diskPaths: ""
+diskConfig: ""
 
 tolerations: []
