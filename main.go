@@ -76,16 +76,16 @@ func run() error {
 	}
 
 	// Handler
-	hand := controller.HandlerFunc(func(_ context.Context, obj runtime.Object) error {
+	handler := controller.HandlerFunc(func(_ context.Context, obj runtime.Object) error {
 		deployment, ok := obj.(*appsv1.Deployment)
 		if ok {
-			log.Infof("Deployment added: %s/%s", deployment.Namespace, deployment.Name)
+			log.Infof("Deployment found: %s/%s", deployment.Namespace, deployment.Name)
 			return nil
 		}
 
 		node, ok := obj.(*longhornV1Beta1.Node)
 		if ok {
-			log.Infof("Node added: %s/%s", node.Namespace, node.Name)
+			log.Infof("Node found: %s/%s", node.Namespace, node.Name)
 			return nil
 		}
 
@@ -93,14 +93,14 @@ func run() error {
 	})
 
 	// Controller for Longhorn Nodes
-	ctrlNodes, err := controller.New(&controller.Config{
+	nodeController, err := controller.New(&controller.Config{
 		Name:                 "longhorn-disk-attacher-node-controller",
 		Logger:               log,
 		ConcurrentWorkers:    1,
 		ProcessingJobRetries: 5,
 		ResyncInterval:       time.Duration(refreshDuration) * time.Second,
 
-		Handler: hand,
+		Handler: handler,
 		Retriever: controller.MustRetrieverFromListerWatcher(&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
 				return longhorncli.LonghornV1beta1().Nodes(namespace).List(context.Background(), options)
@@ -115,14 +115,14 @@ func run() error {
 	}
 
 	// Controller for Deployments
-	ctrlDeployments, err := controller.New(&controller.Config{
+	deploymentController, err := controller.New(&controller.Config{
 		Name:                 "longhorn-disk-attacher-deployment-controller",
 		Logger:               log,
 		ConcurrentWorkers:    1,
 		ProcessingJobRetries: 5,
 		ResyncInterval:       time.Duration(refreshDuration) * time.Second,
 
-		Handler: hand,
+		Handler: handler,
 		Retriever: controller.MustRetrieverFromListerWatcher(&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
 				return k8scli.AppsV1().Deployments(namespace).List(context.Background(), options)
@@ -142,11 +142,11 @@ func run() error {
 	errC := make(chan error)
 
 	go func() {
-		errC <- ctrlNodes.Run(ctx)
+		errC <- nodeController.Run(ctx)
 	}()
 
 	go func() {
-		errC <- ctrlDeployments.Run(ctx)
+		errC <- deploymentController.Run(ctx)
 	}()
 
 	// Wait until one exits
