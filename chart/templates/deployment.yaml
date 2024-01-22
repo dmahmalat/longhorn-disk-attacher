@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "longhorn-disk-attacher.fullname" . }}
+  namespace: {{ .Release.Namespace | quote }}
+  annotations:
+    "helm.sh/hook": "post-install"
+  labels:
+    chart: {{ include "longhorn-disk-attacher.chart" . }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "longhorn-disk-attacher.name" . }}
+  template:
+    metadata:
+      name: {{ include "longhorn-disk-attacher.fullname" . }}
+      namespace: {{ .Release.Namespace | quote }}
+      labels:
+        app: {{ include "longhorn-disk-attacher.name" . }}
+        chart: {{ include "longhorn-disk-attacher.chart" . }}
+    spec:
+      serviceAccountName: {{ include "longhorn-disk-attacher.fullname" . }}
+      {{- if .Values.tolerations }}
+      tolerations: {{- include "common.tplvalues.render" (dict "value" .Values.tolerations "context" .) | nindent 8 }}
+      {{- end }}
+      restartPolicy: OnFailure
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        env:
+        - name: NODE_NAME_PATTERN
+          value: {{ .Values.nodeNamePattern | quote }}
+        - name: DISK_PATHS
+          value: {{ .Values.diskPaths | quote }}
