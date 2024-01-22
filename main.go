@@ -83,18 +83,18 @@ func run() error {
 			return nil
 		}
 
-		volume, ok := obj.(*longhornV1Beta1.Volume)
+		node, ok := obj.(*longhornV1Beta1.Node)
 		if ok {
-			log.Infof("Volume added: %s/%s", volume.Namespace, volume.Name)
+			log.Infof("Node added: %s/%s", node.Namespace, node.Name)
 			return nil
 		}
 
 		return nil
 	})
 
-	// Controller for Longhorn Volumes
-	ctrlVolumes, err := controller.New(&controller.Config{
-		Name:                 "longhorn-disk-attacher-volume-controller",
+	// Controller for Longhorn Nodes
+	ctrlNodes, err := controller.New(&controller.Config{
+		Name:                 "longhorn-disk-attacher-node-controller",
 		Logger:               log,
 		ConcurrentWorkers:    1,
 		ProcessingJobRetries: 5,
@@ -103,10 +103,10 @@ func run() error {
 		Handler: hand,
 		Retriever: controller.MustRetrieverFromListerWatcher(&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
-				return longhorncli.LonghornV1beta1().Volumes(namespace).List(context.Background(), options)
+				return longhorncli.LonghornV1beta1().Nodes(namespace).List(context.Background(), options)
 			},
 			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
-				return longhorncli.LonghornV1beta1().Volumes(namespace).Watch(context.Background(), options)
+				return longhorncli.LonghornV1beta1().Nodes(namespace).Watch(context.Background(), options)
 			},
 		}),
 	})
@@ -142,7 +142,7 @@ func run() error {
 	errC := make(chan error)
 
 	go func() {
-		errC <- ctrlVolumes.Run(ctx)
+		errC <- ctrlNodes.Run(ctx)
 	}()
 
 	go func() {

@@ -21,7 +21,7 @@ rules:
   - "longhorn.io"
   resources:
   - "deployments"
-  - "nodes.longhorn.io"
+  - "nodes"
   verbs:
   - "get"
   - "list"
