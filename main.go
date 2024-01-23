@@ -64,9 +64,9 @@ func readFile(path string) string {
 func parseDiskConfig(cfg string) ([]Disk, error) {
 	disks := []Disk{}
 
-	diskDefinition := strings.Split(cfg, " ")
+	diskDefinition := strings.Split(strings.ReplaceAll(cfg, " ", ""), ",")
 	for _, def := range diskDefinition {
-		diskData := strings.Split(def, ",")
+		diskData := strings.Split(def, ":")
 
 		if len(diskData) != 2 {
 			return disks, errors.New("error parsing the disk configuration")
@@ -105,7 +105,6 @@ func run() error {
 		node, ok := obj.(*longhornV1Beta1.Node)
 		if ok && strings.Contains(node.Name, nodeNamePattern) {
 			dataChanged := false
-			log.Infof("Node found: %s", node.Name)
 
 			nodeData := node.DeepCopy()
 			nodeDisks := nodeData.Spec.Disks
