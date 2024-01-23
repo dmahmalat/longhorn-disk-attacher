@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	longhornV1Beta1 "github.com/longhorn/longhorn-manager/k8s/pkg/apis/longhorn/v1beta1"
+	longhornV1Beta2 "github.com/longhorn/longhorn-manager/k8s/pkg/apis/longhorn/v1beta2"
 	longhorn "github.com/longhorn/longhorn-manager/k8s/pkg/client/clientset/versioned"
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -102,7 +102,7 @@ func run() error {
 
 	// Handler
 	handler := controller.HandlerFunc(func(_ context.Context, obj runtime.Object) error {
-		node, ok := obj.(*longhornV1Beta1.Node)
+		node, ok := obj.(*longhornV1Beta2.Node)
 		if ok && strings.Contains(node.Name, nodeNamePattern) {
 			dataChanged := false
 
@@ -110,7 +110,8 @@ func run() error {
 			nodeDisks := nodeData.Spec.Disks
 			for _, diskData := range diskConfig {
 				if _, ok := nodeDisks[diskData.name]; !ok {
-					nodeDisks[diskData.name] = longhornV1Beta1.DiskSpec{
+					nodeDisks[diskData.name] = longhornV1Beta2.DiskSpec{
+						Type:              "filesystem",
 						Path:              diskData.path,
 						AllowScheduling:   true,
 						EvictionRequested: false,
@@ -124,7 +125,7 @@ func run() error {
 			}
 
 			if dataChanged {
-				_, err := longhorncli.LonghornV1beta1().Nodes(namespace).Update(context.TODO(), nodeData, metav1.UpdateOptions{})
+				_, err := longhorncli.LonghornV1beta2().Nodes(namespace).Update(context.TODO(), nodeData, metav1.UpdateOptions{})
 				if err != nil {
 					return fmt.Errorf("error updating node: %w", err)
 				}
@@ -147,10 +148,10 @@ func run() error {
 		Handler: handler,
 		Retriever: controller.MustRetrieverFromListerWatcher(&cache.ListWatch{
 			ListFunc: func(options metav1.ListOptions) (runtime.Object, error) {
-				return longhorncli.LonghornV1beta1().Nodes(namespace).List(context.Background(), options)
+				return longhorncli.LonghornV1beta2().Nodes(namespace).List(context.Background(), options)
 			},
 			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
-				return longhorncli.LonghornV1beta1().Nodes(namespace).Watch(context.Background(), options)
+				return longhorncli.LonghornV1beta2().Nodes(namespace).Watch(context.Background(), options)
 			},
 		}),
 	})
