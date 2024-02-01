@@ -1,4 +1,4 @@
-module github.com/dmahmalat/longhorn-disk-attacher
+module github.com/lost-woods/longhorn-disk-attacher
 
 go 1.21
 

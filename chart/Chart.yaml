@@ -7,10 +7,10 @@ version: 0.0.0-template
 appVersion: 0.0.0-template
 
 icon: https://cncf-branding.netlify.app/img/projects/longhorn/icon/color/longhorn-icon-color.svg
-home: https://ghcr.io/dmahmalat/charts
+home: https://ghcr.io/lost-woods/charts
 
 sources:
-- https://github.com/dmahmalat/longhorn-disk-attacher
+- https://github.com/lost-woods/longhorn-disk-attacher
 
 keywords:
 - longhorn
